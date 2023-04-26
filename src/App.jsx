@@ -1,8 +1,6 @@
 import "./App.css";
-import { useState } from "react";
-import { Line } from "react-chartjs-2";
+import { useState, useEffect } from "react";
 import { Chart, registerables } from "chart.js";
-import { useEffect } from "react";
 Chart.register(...registerables);
 // import { Tab, Tabs } from "react-bootstrap";
 import Tabs from "../Tabs";
@@ -38,6 +36,7 @@ function App() {
   const actualYear = new Date().getFullYear();
 
   const handleSearch = () => {
+    setMeteoData([]);
     fetch(`${api.base}q=${search}`)
       .then((res) => res.json())
       .then((result) => {
