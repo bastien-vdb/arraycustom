@@ -1,10 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import Table from "react-bootstrap/Table";
-import PropTypes from "prop-types";
-
-Tabs.propTypes = {
-  meteoData: PropTypes.array.isRequired,
-};
 
 function Tabs({ meteoData }) {
 
