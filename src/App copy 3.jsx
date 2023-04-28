@@ -1,14 +1,14 @@
 import "./App.css";
 import { useState } from "react";
-import { Chart, elements, registerables } from "chart.js";
+import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 // import { Tab, Tabs } from "react-bootstrap";
-import Tabs from "./Tabs";
+import Tabs from "../Tabs";
 import { fetcher } from "./../libs/fetchs";
 import { actualDay, actualMonth, actualYear } from "../libs/helper";
+import { getMeteoDataForEachYearCalculated } from "../libs/getTenYears";
+import { getMeteoDataForYearCalculated } from "../libs/getThisYear";
 import { getDataByMonth } from "../libs/getTenYearsBis";
-import { getDataForthisYear } from "../libs/getThisYearBis";
-import { calculations } from "../libs/calculations";
 
 const api = {
   base: "https://geocode.maps.co/search?",
@@ -23,8 +23,7 @@ function App() {
   const [weather, setWeather] = useState({});
   const [meteo, setMeteo] = useState({});
 
-  // const [meteoData, setMeteoData] = useState([]);
-  const [byMonthTenYears, setByMonthTenYears] = useState([]);
+  const [meteoData, setMeteoData] = useState([]);
 
   const getPosition = () => {
     return fetch(`${api.base}q=${search}`)
@@ -36,6 +35,7 @@ function App() {
   };
 
   const handleSearch = async () => {
+    setMeteoData([]);
     const result = await getPosition();
     // Call the second API for weather data only when the first API call is successful
     //Only for the actual year
@@ -46,26 +46,33 @@ function App() {
       actualMonth,
       actualDay
     );
+    const meteoDataForYearCalculated = getMeteoDataForYearCalculated(resultat);
+    setMeteoData(meteoDataForYearCalculated);
 
-    setMeteo(resultat);
-
-    // Ten last years
+    //We split the data by year to avoid to much data in one call (max 365 days)
+    let meteoDataForYearCalculatedCompiled = [];
     let getAllByMonthCompiled = [];
-    for (let year = actualYear - 10; year < actualYear; year++) {
+    for (let year = actualYear - 1; year > actualYear - 11; year--) {
       const resultat = await fetcher(url, result, year, 12, 31);
+
+      setMeteo(resultat);
+
       // Data selected is for one year so we need to split it by month
 
-      const getAllByMonth = getDataByMonth(resultat, year);
-      getAllByMonthCompiled.push(getAllByMonth);
-    }
-    // Actual Year
-    const getAllByMonth = [];
-    getAllByMonth.push(getDataForthisYear(resultat));
-    const allCompiled = [...getAllByMonthCompiled, ...getAllByMonth];
+      const meteoDataForYearCalculated = getMeteoDataForEachYearCalculated(
+        resultat,
+        year
+      );
+      meteoDataForYearCalculatedCompiled.push(meteoDataForYearCalculated);
 
-    const parameters = calculations(allCompiled);
-    setByMonthTenYears(parameters);
-    console.log("parameters", parameters);
+      const getAllByMonth = getDataByMonth(resultat, year);
+      getAllByMonthCompiled[year] = getAllByMonth;
+    }
+    console.log(getAllByMonthCompiled);
+    setMeteoData((prevMeteoData) => [
+      ...prevMeteoData,
+      ...meteoDataForYearCalculatedCompiled,
+    ]);
   };
 
   return (
@@ -101,8 +108,8 @@ function App() {
           <button onClick={handleSearch}>Lancer la recherche</button>
         </div>
 
-        <div style={{ fontSize: "12px" }}>
-          <Tabs byMonthTenYears={byMonthTenYears} />
+        <div style={{ fontSize: "14px" }}>
+          <Tabs meteoData={meteoData} />
         </div>
       </header>
     </div>

@@ -1,14 +1,16 @@
 import "./App.css";
 import { useState } from "react";
-import { Chart, elements, registerables } from "chart.js";
+import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 // import { Tab, Tabs } from "react-bootstrap";
-import Tabs from "./Tabs";
+import Tabs from "../Tabs";
 import { fetcher } from "./../libs/fetchs";
 import { actualDay, actualMonth, actualYear } from "../libs/helper";
+import { getMeteoDataForEachYearCalculated } from "../libs/getTenYears";
+import { getMeteoDataForYearCalculated } from "../libs/getThisYear";
 import { getDataByMonth } from "../libs/getTenYearsBis";
 import { getDataForthisYear } from "../libs/getThisYearBis";
-import { calculations } from "../libs/calculations";
+import { useEffect } from "react";
 
 const api = {
   base: "https://geocode.maps.co/search?",
@@ -24,7 +26,7 @@ function App() {
   const [meteo, setMeteo] = useState({});
 
   // const [meteoData, setMeteoData] = useState([]);
-  const [byMonthTenYears, setByMonthTenYears] = useState([]);
+  const [allData, setAllData] = useState(null);
 
   const getPosition = () => {
     return fetch(`${api.base}q=${search}`)
@@ -50,23 +52,28 @@ function App() {
     setMeteo(resultat);
 
     // Ten last years
-    let getAllByMonthCompiled = [];
+    let getAllByMonthCompiled = {};
     for (let year = actualYear - 10; year < actualYear; year++) {
       const resultat = await fetcher(url, result, year, 12, 31);
       // Data selected is for one year so we need to split it by month
 
       const getAllByMonth = getDataByMonth(resultat, year);
-      getAllByMonthCompiled.push(getAllByMonth);
+      const yearLetter = year.toString();
+      getAllByMonthCompiled[yearLetter] = getAllByMonth;
     }
-    // Actual Year
-    const getAllByMonth = [];
-    getAllByMonth.push(getDataForthisYear(resultat));
-    const allCompiled = [...getAllByMonthCompiled, ...getAllByMonth];
+    setAllData(getAllByMonthCompiled);
 
-    const parameters = calculations(allCompiled);
-    setByMonthTenYears(parameters);
-    console.log("parameters", parameters);
+    // Actual Year
+    const getAllByMonth = {};
+    const actualYearLetter = actualYear.toString();
+    getAllByMonth[actualYearLetter] = getDataForthisYear(resultat);
+    setAllData((prevAllData) => ({...prevAllData, ...getAllByMonth}));
+    console.log(getAllByMonth);
   };
+
+  useEffect(() => {
+    console.log(allData);
+  }, [allData]);
 
   return (
     <div className="App">
@@ -101,8 +108,8 @@ function App() {
           <button onClick={handleSearch}>Lancer la recherche</button>
         </div>
 
-        <div style={{ fontSize: "12px" }}>
-          <Tabs byMonthTenYears={byMonthTenYears} />
+        <div style={{ fontSize: "14px" }}>
+          {/* <Tabs meteoData={meteoData} /> */}
         </div>
       </header>
     </div>
