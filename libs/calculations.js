@@ -32,7 +32,7 @@ export const calculations = (allCompiled) => {
       const { tempMinAllMonth, tempMaxAllMonth, rainSum } = tempsAllMonth;
       const tempMin = Math.min(...tempMinAllMonth);
       const tempMax = Math.max(...tempMaxAllMonth);
-      const rainSumAvg = avg(rainSum).toFixed(2);
+      const rainSumAdd = (rainSum.reduce((a, b) => a + b, 0)).toFixed(1);
 
       const tempMoyMax = avg(tempMaxAllMonth);
       const tempMoyMin = avg(tempMinAllMonth);
@@ -41,7 +41,7 @@ export const calculations = (allCompiled) => {
       const obj = {
         tempMin: tempMin,
         tempMax: tempMax,
-        rainSumAvg: rainSumAvg,
+        rainSumAvg: rainSumAdd,
         tempMoy: tempMoy,
         monthName,
       };
