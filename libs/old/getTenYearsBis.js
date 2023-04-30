@@ -7,8 +7,12 @@ export const getDataByMonth = (resultat, year) => {
       const monthName = new Date(year, i).toLocaleString("default", {
         month: "long",
       });
-      const nbDayPerMonth = getDaysInMonth(year, i);
+      let nbDayPerMonth = getDaysInMonth(year, i);
 
+      
+      
+      
+      
       const tempMaxAllMonth = resultat.daily.temperature_2m_max.slice(
         cummul,
         cummul + nbDayPerMonth

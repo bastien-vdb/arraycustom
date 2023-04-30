@@ -1,22 +1,15 @@
 import "./App.css";
 import { useState } from "react";
-import { Chart, elements, registerables } from "chart.js";
+import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
-// import { Tab, Tabs } from "react-bootstrap";
 import Tabs from "./Tabs";
-import { fetcher } from "./../libs/fetchs";
+import Tabs2 from "./Tabs2";
+import { fetcher, getPosition } from "./../libs/fetchs";
 import { actualDay, actualMonth, actualYear } from "../libs/helper";
-import { getDataByMonth } from "../libs/getTenYearsBis";
-import { getDataForthisYear } from "../libs/getThisYearBis";
+import { getDataForTenYears } from "../libs/getDataForTenYears";
 import { calculations } from "../libs/calculations";
-
-const api = {
-  base: "https://geocode.maps.co/search?",
-};
-
-const url = {
-  base: "https://archive-api.open-meteo.com/v1/archive?",
-};
+import { url, api } from "../libs/constants";
+import { getMeteoDataForYearCalculated} from "../libs/old/getThisYear";
 
 function App() {
   const [search, setSearch] = useState("");
@@ -25,47 +18,41 @@ function App() {
 
   // const [meteoData, setMeteoData] = useState([]);
   const [byMonthTenYears, setByMonthTenYears] = useState([]);
-
-  const getPosition = () => {
-    return fetch(`${api.base}q=${search}`)
-      .then((res) => res.json())
-      .then((result) => {
-        setWeather(result);
-        return result;
-      });
-  };
+  const [byMonthForEachYear, setByMonthForEachYear] = useState([]);
 
   const handleSearch = async () => {
-    const result = await getPosition();
-    // Call the second API for weather data only when the first API call is successful
-    //Only for the actual year
-    const resultat = await fetcher(
-      url,
-      result,
-      actualYear,
-      actualMonth,
-      actualDay
-    );
-
-    setMeteo(resultat);
+    //API CAll for getting position
+    const result = await getPosition(api, search);
+    setWeather(result);
+    //********* */
 
     // Ten last years
-    let getAllByMonthCompiled = [];
-    for (let year = actualYear - 10; year < actualYear; year++) {
-      const resultat = await fetcher(url, result, year, 12, 31);
+    const getAllByMonthCompiled = [];
+    const getAllByMonthCompiled_2 = [];
+
+    for (let year = actualYear - 10; year <= actualYear; year++) {
+      let month = 12;
+      let day = 31;
+      if (year === actualYear) {
+        month = actualMonth;
+        day = actualDay;
+      }
+      const resultat = await fetcher(url, result, year, month, day);
+      setMeteo(resultat);
+
       // Data selected is for one year so we need to split it by month
-
-      const getAllByMonth = getDataByMonth(resultat, year);
+      const getAllByMonth = getDataForTenYears(resultat, year);
       getAllByMonthCompiled.push(getAllByMonth);
-    }
-    // Actual Year
-    const getAllByMonth = [];
-    getAllByMonth.push(getDataForthisYear(resultat));
-    const allCompiled = [...getAllByMonthCompiled, ...getAllByMonth];
 
-    const parameters = calculations(allCompiled);
+      //********* */
+    const getAllByMonth_2 = getMeteoDataForYearCalculated(resultat, year);
+    getAllByMonthCompiled_2.push(getAllByMonth_2);
+    console.log(getAllByMonthCompiled_2);
+    }
+
+    const parameters = calculations(getAllByMonthCompiled);
     setByMonthTenYears(parameters);
-    console.log("parameters", parameters);
+    setByMonthForEachYear(getAllByMonthCompiled_2);
   };
 
   return (
@@ -73,38 +60,40 @@ function App() {
       <header className="App-header">
         {/* HEADER */}
         <h1>Weather App 2</h1>
-
-        {/* Search Box */}
-        <div>
-          <input
-            type="text"
-            placeholder="Entrez une ville"
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        {/* If weather is not undefined */}
-        {typeof weather[0] !== "undefined" ? (
-          <div>
-            {/* Location */}
-            <p>Latitude : {weather[0].lat}</p>
-
-            {/* Temperature */}
-            <p>Longitude : {weather[0].lon}</p>
-            <div>Altitude: {meteo.elevation}</div>
-          </div>
-        ) : (
-          ""
-        )}
-
-        <div style={{ margin: "20px 0" }}>
-          <button onClick={handleSearch}>Lancer la recherche</button>
-        </div>
-
-        <div style={{ fontSize: "12px" }}>
-          <Tabs byMonthTenYears={byMonthTenYears} />
-        </div>
       </header>
+
+      {/* Search Box */}
+      <div>
+        <input type="text" placeholder="Entrez une ville" onChange={(e) => setSearch(e.target.value)} />
+      </div>
+
+      {/* If weather is not undefined */}
+      {typeof weather[0] !== "undefined" ? (
+        <div>
+          {/* Location */}
+          <p>Latitude : {weather[0].lat}</p>
+          <p>Longitude : {weather[0].lon}</p>
+          {/* Altitude */}
+          <p>Altitude: {meteo.elevation}</p>
+        </div>
+      ) : (
+        ""
+      )}
+
+      <div
+        style={{
+          fontSize: "12px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: '20px',
+        }}
+      >
+        <button onClick={handleSearch}>Lancer la recherche</button>
+        <Tabs byMonthTenYears={byMonthTenYears} />
+        <Tabs2 meteoData={byMonthForEachYear}/>
+      </div>
     </div>
   );
 }

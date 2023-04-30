@@ -3,6 +3,7 @@ import {getDaysInMonth, avg} from '../helper.js';
 export const getMeteoDataForEachYearCalculated = (resultat, year) => {
     const meteoDataForYearCalculated = [];
     let cummul = 0;
+    
     for (let i = 0; i < 12; i++) {
       const monthName = new Date(year, i).toLocaleString("default", {
         month: "long",
