@@ -9,7 +9,7 @@ import { actualDay, actualMonth, actualYear } from "../libs/helper";
 import { getDataForTenYears } from "../libs/getDataForTenYears";
 import { calculations } from "../libs/calculations";
 import { url, api } from "../libs/constants";
-import { getMeteoDataForYearCalculated} from "../libs/old/getThisYear";
+import { getByMonthForEachYear } from "../libs/getByMonthForEachYear";
 
 function App() {
   const [search, setSearch] = useState("");
@@ -24,9 +24,8 @@ function App() {
     //API CAll for getting position
     const result = await getPosition(api, search);
     setWeather(result);
-    //********* */
 
-    // Ten last years
+    //********* First TAB (10 years) *********//
     const getAllByMonthCompiled = [];
     const getAllByMonthCompiled_2 = [];
 
@@ -44,15 +43,16 @@ function App() {
       const getAllByMonth = getDataForTenYears(resultat, year);
       getAllByMonthCompiled.push(getAllByMonth);
 
-      //********* */
-    const getAllByMonth_2 = getMeteoDataForYearCalculated(resultat, year);
-    getAllByMonthCompiled_2.push(getAllByMonth_2);
-    console.log(getAllByMonthCompiled_2);
+      //********* Second TAB (per year) *********//
+      const getAllByMonth_2 = getByMonthForEachYear(resultat, year);
+      getAllByMonthCompiled_2.push(getAllByMonth_2);
     }
 
+    // Calculations for the first tab
     const parameters = calculations(getAllByMonthCompiled);
-    setByMonthTenYears(parameters);
-    setByMonthForEachYear(getAllByMonthCompiled_2);
+
+    setByMonthTenYears(parameters); // First tab
+    setByMonthForEachYear(getAllByMonthCompiled_2); // Second tab
   };
 
   return (
@@ -87,12 +87,12 @@ function App() {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          gap: '20px',
+          gap: "20px",
         }}
       >
         <button onClick={handleSearch}>Lancer la recherche</button>
         <Tabs byMonthTenYears={byMonthTenYears} />
-        <Tabs2 meteoData={byMonthForEachYear}/>
+        <Tabs2 byMonthForEachYear={byMonthForEachYear} />
       </div>
     </div>
   );

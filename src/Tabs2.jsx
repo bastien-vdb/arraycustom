@@ -1,9 +1,9 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import Table from "react-bootstrap/Table";
 
-function Tabs({ meteoData }) {
+function Tabs({ byMonthForEachYear }) {
 
-  if (meteoData?.length === 0) {
+  if (byMonthForEachYear?.length === 0) {
     return <div>...</div>;
   }
 
@@ -13,16 +13,16 @@ function Tabs({ meteoData }) {
       <thead>
         <tr>
           <th>Month</th>
-          {meteoData.map((year) => (
+          {byMonthForEachYear.map((year) => (
             <th key={year.year}>{year.year}</th>
           ))}
         </tr>
       </thead>
       <tbody>
-        {meteoData[1]?.meteoDataForYearCalculated?.map((month) => (
+        {byMonthForEachYear[1]?.meteoDataForYearCalculated?.map((month) => (
           <tr key={month.monthName}>
             <td>{month.monthName}</td>
-            {meteoData.map((year) => {
+            {byMonthForEachYear.map((year) => {
               const monthData = year.meteoDataForYearCalculated.find(
                 (m) => m.monthName === month.monthName
               );

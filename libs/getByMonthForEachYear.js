@@ -1,6 +1,6 @@
-import { actualDay, getMonth, actualYear, getDaysInMonth, avg } from "./../helper";
+import { actualDay, getMonth, actualYear, getDaysInMonth, avg } from "./helper";
 
-export const getMeteoDataForYearCalculated = (resultat, year) => {
+export const getByMonthForEachYear = (resultat, year) => {
   // Data selected is for the actual year
   const meteoDataForYearCalculated = [];
   let cummul = 0;
