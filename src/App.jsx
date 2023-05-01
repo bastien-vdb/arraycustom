@@ -5,7 +5,7 @@ Chart.register(...registerables);
 import Tabs from "./Tabs";
 import Tabs2 from "./Tabs2";
 import { fetcher, getPosition } from "./../libs/fetchs";
-import { actualDay, actualMonth, actualYear } from "../libs/helper";
+import { actualDay, actualMonth, actualYear, getDaysInMonth, padDate} from "../libs/helper";
 import { getDataForTenYears } from "../libs/getDataForTenYears";
 import { calculations } from "../libs/calculations";
 import { url, api } from "../libs/constants";
@@ -16,7 +16,6 @@ function App() {
   const [weather, setWeather] = useState({});
   const [meteo, setMeteo] = useState({});
 
-  // const [meteoData, setMeteoData] = useState([]);
   const [byMonthTenYears, setByMonthTenYears] = useState([]);
   const [byMonthForEachYear, setByMonthForEachYear] = useState([]);
 
@@ -25,7 +24,7 @@ function App() {
     const result = await getPosition(api, search);
     setWeather(result);
 
-    //********* First TAB (10 years) *********//
+    //**********Fetching of datas for the 2 Tabs */
     const getAllByMonthCompiled = [];
     const getAllByMonthCompiled_2 = [];
 
@@ -34,11 +33,18 @@ function App() {
       let day = 31;
       if (year === actualYear) {
         month = actualMonth;
-        day = actualDay;
+        day = padDate(actualDay-1);
+        if (actualDay===1) {        //In case of the first day of the month we need to go back to the last day of previous month
+          month = padDate(month-1);
+          const nbDayPerMonth = getDaysInMonth(year, month);
+          day = nbDayPerMonth;
+        }
+       
       }
       const resultat = await fetcher(url, result, year, month, day);
       setMeteo(resultat);
 
+      //********* First TAB (10 years) *********//
       // Data selected is for one year so we need to split it by month
       const getAllByMonth = getDataForTenYears(resultat, year);
       getAllByMonthCompiled.push(getAllByMonth);
